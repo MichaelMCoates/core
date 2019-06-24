@@ -72,7 +72,8 @@ export module Channel {
         return providerIdentity;
     }
 
-    export function createChannel(identity: Identity, channelName: string, allChannels: ProviderIdentity[]): ProviderIdentity {
+    export function createChannel(identity: Identity, channelName: string, allChannels: ProviderIdentity[],
+        options: {externalWindowName?: string} = {}): ProviderIdentity {
         if (Channel.getChannelByChannelName(channelName, allChannels)) {
             // If a channel has already been created with that channelName
             const nackString = 'Channel creation failed: Please note that only one channel may be registered per channelName.';
@@ -82,7 +83,6 @@ export module Channel {
         const providerApp = getExternalOrOfWindowIdentity(identity);
         const channelId = getChannelId(identity, channelName);
         const providerIdentity = { ...providerApp, channelName, channelId };
-        channelMap.set(channelId, providerIdentity);
 
         // Handled reloaded and navigation events
         const { uuid, name } = providerIdentity;
@@ -106,6 +106,11 @@ export module Channel {
         // Need channel-connected for compatibility with 9.61.34.*
         ofEvents.emit(route.channel('channel-connected'), providerIdentity);
 
+        if (providerApp.isExternal && options.externalWindowName) {
+            providerApp.name = options.externalWindowName;
+        }
+
+        channelMap.set(channelId, providerIdentity);
         return providerIdentity;
     }
 
@@ -133,7 +138,7 @@ export module Channel {
     }
 
     export function connectToChannel(identity: Identity, payload: any, messageId: number, ack: AckFunc, nack: NackFunc): void {
-        const { channelName, payload: connectionPayload } = payload;
+        const { channelName, options, payload: connectionPayload } = payload;
         const { uuid, name } = identity;
 
         const providerIdentity = Channel.getChannelByChannelName(channelName);

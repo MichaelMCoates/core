@@ -50,7 +50,7 @@ export class ChannelApiHandler {
 
     private createChannel(identity: Identity, message: APIMessage, ack: AckFunc): void {
         const { payload, locals } = message;
-        const { channelName } = payload;
+        const { channelName, options } = payload;
 
         let allChannels = Channel.getAllChannels();
 
@@ -60,7 +60,7 @@ export class ChannelApiHandler {
             allChannels = [...allChannels, ...aggregate];
         }
 
-        const providerIdentity = Channel.createChannel(identity, channelName, allChannels);
+        const providerIdentity = Channel.createChannel(identity, channelName, allChannels, options);
         const dataAck = Object.assign({}, successAck, { data: providerIdentity });
         ack(dataAck);
     }
